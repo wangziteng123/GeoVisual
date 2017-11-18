@@ -1,0 +1,26 @@
+['Petaling Jaya, Selangor', 'Bangkok 10520,Thailand,TI', 'Shanghai', 'Mongkok,Kowloon,Hong Kong', 'Sec. 2, Taipei 106,', 'Selangor Darul Ehsan', 'Mandaue City Cebu', 'Ladkrabang, Bangkok, 1052', 'Ho Chi Minh City', 'Tokyo', 'Ishikari-City, Hokkaido', 'Hisayama-machi, Kasuya-gu', 'Suminoe-ku, Osaka-shi, Os', 'Mascot NSW Australia 2020', 'East Tamaki, Auckland', 'Beijing', 'Suzhou City', 'Guangzhou', 'Cheng Du', 'Shenyang', 'Wu Han', 'Xian City', '#07-01 Tower One, Singapo', 'Bhiwandi', 'Bangkok, 10520', 'Paranaque City']
+________________________________________
+['Petaling Jaya, Selangor', 'Bangkok 10520,Thailand,TI', 'Shanghai', 'Mongkok,Kowloon,Hong Kong', 'Paranaque City', 'Ho Chi Minh City', 'Tokyo', 'nan', 'Mascot NSW Australia 2020', 'Sec. 2, Taipei 106,', '39 TSING YI ROAD, TSING YI, NT.', 'Shah Alam, Selangor, Malaysia', 'KALNG, SELANGOR', 'A. Bangpa-in, Pranakron Sri Ayudhya', 'HCMC', 'MINAMI SAITAMAGUN', 'OSAKA ,JAPAN', '##', 'Village, HsinFeng Country, Hsin Chu', 'PARANAQUE CITY']
+
+
+
+
+
+'Petaling Jaya, Selangor', 'Bangkok 10520,Thailand,TI', 'Shanghai', 'Mongkok,Kowloon,Hong Kong','Sec. 2, Taipei 106,','Ho Chi Minh City', 'Tokyo', 'Mascot NSW Australia 2020','Paranaque City',
+
+
+'Selangor Darul Ehsan','Mandaue City Cebu','Ladkrabang, Bangkok, 1052','Ishikari-City, Hokkaido', 'Hisayama-machi, Kasuya-gu', 'Suminoe-ku, Osaka-shi, Os', 'East Tamaki, Auckland',
+'Beijing', 'Suzhou City', 'Guangzhou', 'Cheng Du', 'Shenyang', 'Wu Han', 'Xian City', '#07-01 Tower One, Singapo', 'Bhiwandi', 'Bangkok, 10520',
+
+'39 TSING YI ROAD, TSING YI, NT.', 'Shah Alam, Selangor, Malaysia', 'KALNG, SELANGOR', 'A. Bangpa-in, Pranakron Sri Ayudhya', 'HCMC', 'MINAMI SAITAMAGUN', 'OSAKA ,JAPAN',
+'Village, HsinFeng Country, Hsin Chu', 'PARANAQUE CITY'
+34
+
+########################################
+
+'Petaling Jaya, Selangor', 'Bangkok 10520,Thailand,TI', 'Shanghai', 'Mongkok,Kowloon,Hong Kong', 'Sec. 2, Taipei 106,', 'Selangor Darul Ehsan', 'Mandaue City Cebu', 
+'Ladkrabang, Bangkok, 1052', 'Ho Chi Minh City', 'Tokyo', 'Ishikari-City, Hokkaido', 'Hisayama-machi, Kasuya-gu', 'Suminoe-ku, Osaka-shi, Os', 'Mascot NSW Australia 2020', 
+'East Tamaki, Auckland', 'Beijing', 'Suzhou City', 'Guangzhou', 'Cheng Du', 'Shenyang', 'Wu Han', 'Xian City', '#07-01 Tower One, Singapo', 'Bhiwandi','Paranaque City',
+
+'PARANAQUE CITY', 'Bangkok, 10520', '39 TSING YI ROAD, TSING YI, NT.', 'Shah Alam, Selangor, Malaysia', 'KALNG, SELANGOR', 'A. Bangpa-in, Pranakron Sri Ayudhya', 'HCMC',
+'MINAMI SAITAMAGUN', 'OSAKA ,JAPAN', 'Village, HsinFeng Country, Hsin Chu'

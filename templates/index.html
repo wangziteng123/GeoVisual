@@ -1,0 +1,1190 @@
+<html>
+<head>
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="./static/lib/css//bootstrap.min.css">
+  <link rel="stylesheet" href="./static/lib/css/keen-dashboards.css">
+  <link rel="stylesheet" href="./static/lib/css/dc.min.css">
+  <link rel="stylesheet" href="./static/lib/css/leaflet.css">
+  <link rel="stylesheet" href="./static/css/custom.css">
+
+  <style type="text/css">
+  svg {
+    font: 10px sans-serif;
+    shape-rendering: crispEdges;
+  }
+
+  .axis path,
+  .axis line {
+    fill: none;
+    stroke: #000;
+  }
+ 
+  path.domain {
+    stroke: none;
+  }
+ 
+  .y .tick line {
+    stroke: #ddd;
+  }
+
+  #two
+  {
+      /*background-color: #F00;*/
+      display: inline-block;
+      /*height: 30px;*/
+      position: relative;
+      bottom: 100px;
+      /*width: 100px;*/
+  }
+  </style>
+</head>
+
+
+<body class="application">
+  <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="./">Supply Chain Visualization</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="container-fluid">
+    <div class="row">
+
+      <div class="col-sm-6">
+        <div class="row">
+
+          <!-- Time Chart --> 
+          <div class="col-sm-14">
+            <div class="chart-wrapper">
+              <div class="chart-title">
+                Number of Events
+              </div>
+            <div id="select1">
+              <div>
+                <a class='reset'
+                   href='javascript:select1.filterAll();dc.redrawAll();'
+                   style='visibility: hidden;'>reset</a>
+              </div>
+            </div>
+
+            <div id="select2">
+              <div>
+                <a class='reset'
+                   href='javascript:select2.filterAll();dc.redrawAll();'
+                   style='visibility: hidden;'>reset</a>
+              </div>
+            </div>           
+
+
+            <div id="select3">
+              <div>
+                <a class='reset'
+                   href='javascript:select3.filterAll();dc.redrawAll();'
+                   style='visibility: hidden;'>reset</a>
+              </div>
+            </div>             
+
+            <div id="select4">
+              <div>
+                <a class='reset'
+                   href='javascript:select4.filterAll();dc.redrawAll();'
+                   style='visibility: hidden;'>reset</a>
+              </div>
+            </div> 
+
+            <div id="select5">
+              <div>
+                <a class='reset'
+                   href='javascript:select5.filterAll();dc.redrawAll();'
+                   style='visibility: hidden;'>reset</a>
+              </div>
+            </div> 
+
+            <div id="select6">
+              <div>
+                <a class='reset'
+                   href='javascript:select6.filterAll();dc.redrawAll();'
+                   style='visibility: hidden;'>reset</a>
+              </div>
+            </div> 
+
+            </div>
+
+          </div>
+          <!-- Time Chart -->
+
+
+        </div>
+
+            <div>
+                <form>
+                <div class="choosefilter">
+                <select id="mySelect">
+                <option value="void">Choose your answer</option>
+                <option value="BOMUnit">BOMUnit</option>
+                <option value="Variant_type">Variant_type</option>
+                <option value="Vrnt_Description">Vrnt_Description</option>
+                <option value="Putup_Description">Putup_Description</option>
+                <option value="Plant">Plant</option>
+                <option value="Material_No">Material_No</option>
+                </select>
+                </div>
+                </form>
+<!--
+Material_No
+BOMUnit
+Vrnt_Description
+Plant
+Variant_type
+Putup_Description 
+-->
+                <button class="btn btn-default" id="checkbtn" onclick="getFinalFilter();" type="button"><span    class="glyphicon glyphicon-check"></span> Check answers</button>
+            </div> 
+      </div>
+
+
+
+
+
+
+      <div class="col-sm-4">
+
+        <div class="row">
+          <!-- Map -->  
+          <div class="col-sm-12"> 
+            <div class="chart-wrapper">
+              <div class="chart-title">
+                Map
+              </div>
+              <div class="chart-stage">
+                <div id="map" style="width: 600px; height: 480px"></div>
+              </div>
+            </div>
+          </div>
+          <!-- Map -->  
+        </div>
+
+      </div>
+
+ 
+
+    </div>
+
+  </div>
+
+    <div id="svg">
+      <svg width="960" height="1260" id="mySVG"></svg>
+    </div>
+
+
+
+
+  <hr>
+  <script src="./static/lib/js/jquery.min.js"></script>
+  <script src="./static/lib/js/bootstrap.min.js"></script>
+  <script src="./static/lib/js/underscore-min.js"></script>
+  <script src="./static/lib/js/crossfilter.js"></script>
+<!--   <script src="./static/lib/js/d3.min.js"></script> -->
+<!--   <script src="./static/lib/js/dc.min.js"></script> -->
+  <script src="https://d3js.org/d3.v3.min.js"></script>
+  <script src="./static/lib/js/queue.js"></script>
+  <script src="./static/lib/js/leaflet.js"></script>
+  <script src="./static/lib/js/leaflet-heat.js"></script>
+  <script src="./static/lib/js/keen.min.js"></script>
+  <script src='./static/js/graphs.js' type='text/javascript'></script>
+  <script src="./static/lib/js/dc.js"></script>
+  <script src="./static/lib/js/leaflet.polylineDecorator.js"></script>
+
+</body>
+
+
+
+</html>
+<script>
+function makeStackedBarChart(data) {
+  var margin = {top: 0, right: 0, bottom: 0, left: 0};
+
+var width = 960 - margin.left - margin.right,
+    height = 500 - margin.top - margin.bottom;
+
+var svg = d3.select("#mySVG")
+  .append("svg:svg")
+  .attr("width", width + margin.left + margin.right)
+  .attr("height", height + margin.top + margin.bottom)
+  .append("g")
+  .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+
+/* Data in strings like it would be if imported from a csv */
+
+// var data = [
+//   { year: "2006", redDelicious: "10", mcintosh: "15", oranges: "9", pears: "6", itch:"8", bask:"2" },
+//   { year: "2007", redDelicious: "12", mcintosh: "18", oranges: "9", pears: "4", itch:"8", bask:"2"  },
+//   { year: "2008", redDelicious: "05", mcintosh: "20", oranges: "8", pears: "2", itch:"8", bask:"2"  },
+//   { year: "2009", redDelicious: "01", mcintosh: "15", oranges: "5", pears: "4", itch:"8", bask:"2"  },
+//   { year: "2010", redDelicious: "02", mcintosh: "10", oranges: "4", pears: "2", itch:"8", bask:"2"  },
+//   { year: "2011", redDelicious: "03", mcintosh: "12", oranges: "6", pears: "3", itch:"8", bask:"2"  },
+//   { year: "2012", redDelicious: "04", mcintosh: "15", oranges: "8", pears: "1", itch:"8", bask:"2"  },
+//   { year: "2013", redDelicious: "06", mcintosh: "11", oranges: "9", pears: "4", itch:"8", bask:"2"  },
+//   { year: "2014", redDelicious: "10", mcintosh: "13", oranges: "9", pears: "5", itch:"8", bask:"2"  },
+//   { year: "2015", redDelicious: "16", mcintosh: "19", oranges: "6", pears: "9", itch:"8", bask:"2"  },
+//   { year: "2016", redDelicious: "19", mcintosh: "17", oranges: "5", pears: "7", itch:"8", bask:"2"  },
+// ];
+
+
+
+  //  var data = [
+  //   {key: "KG", labour:" 1299", Freight: "2091", Packaging: "64728", RawAndPack: "11489", Others:"41574",PFGMaterial:"274708",TollFeeMarkup:"52923"},
+  //   {key: "Litre", labour:" 1299", Freight: "2091", Packaging: "64728", RawAndPack: "11489", Others:"41574",PFGMaterial:"274708",TollFeeMarkup:"52923"}
+  // ];
+
+var parse = d3.time.format("%Y").parse;
+
+
+// Transpose the data into layers
+var dataset = d3.layout.stack()(["labour", "Freight", "Packaging", "RawAndPack","Others","PFGMaterial"].map(function(fruit) {
+  return data.map(function(d) {
+    return {x:d.key, y: +d[fruit]};
+  });
+}));
+
+// Transpose the data into layers
+// var dataset = d3.layout.stack()(["redDelicious", "mcintosh", "oranges", "pears","bitch","bask"].map(function(fruit) {
+//   return data.map(function(d) {
+//     return {x: d.year, y: +d[fruit]};
+//   });
+// }));
+
+
+// Set x, y and colors
+var x = d3.scale.ordinal()
+  .domain(dataset[0].map(function(d) { return d.x; }))
+  .rangeRoundBands([10, width-10], 0.02);
+
+var y = d3.scale.linear()
+  .domain([0, d3.max(dataset, function(d) {  return d3.max(d, function(d) { return d.y0 + d.y; });  })])
+  .range([height, 0]);
+
+
+// var y = d3.scale.ordinal()
+//   .domain(dataset[0].map(function(d) { return d.y; }))
+//   .rangeRoundBands([10, width-10], 0.02);
+
+// var x = d3.scale.linear()
+//   .domain([0, d3.max(dataset, function(d) {  return d3.max(d, function(d) { return d.x0 + d.x; });  })])
+//   .range([height, 0]);
+
+
+
+var colors = ["b33040", "#d25c4d", "#f2b447", "#d9d574","#d0743c", "#ff8c00"];
+
+
+// Define and draw axes
+var yAxis = d3.svg.axis()
+  .scale(y)
+  .orient("left")
+  .ticks(5)
+  .tickSize(-width, 0, 0)
+  .tickFormat( function(d) { return d } );
+
+var xAxis = d3.svg.axis()
+  .scale(x)
+  .orient("bottom")
+  .tickFormat( function(d) { return d });
+
+svg.append("g")
+  .attr("class", "y axis")
+  .call(yAxis);
+
+svg.append("g")
+  .attr("class", "x axis")
+  .attr("transform", "translate(0," + height + ")")
+  .call(xAxis);
+
+
+// Create groups for each series, rects for each segment 
+var groups = svg.selectAll("g.cost")
+  .data(dataset)
+  .enter().append("g")
+  .attr("class", "cost")
+  .style("fill", function(d, i) { return colors[i]; });
+
+var rect = groups.selectAll("rect")
+  .data(function(d) { return d; })
+  .enter()
+  .append("rect")
+  .attr("x", function(d) { return x(d.x); })
+  .attr("y", function(d) { return y(d.y0 + d.y); })
+  .attr("height", function(d) { return y(d.y0) - y(d.y0 + d.y); })
+  .attr("width", x.rangeBand())
+  .on("mouseover", function() { tooltip.style("display", null); })
+  .on("mouseout", function() { tooltip.style("display", "none"); })
+  .on("mousemove", function(d) {
+    var xPosition = d3.mouse(this)[0] - 15;
+    var yPosition = d3.mouse(this)[1] - 25;
+    tooltip.attr("transform", "translate(" + xPosition + "," + yPosition + ")");
+    tooltip.select("text").text(d.y);
+  });
+
+
+// Draw legend
+var legend = svg.selectAll(".legend")
+  .data(colors)
+  .enter().append("g")
+  .attr("class", "legend")
+  .attr("transform", function(d, i) { return "translate(30," + i * 19 + ")"; });
+ 
+legend.append("rect")
+  .attr("x", width - 18)
+  .attr("width", 18)
+  .attr("height", 18)
+  .style("fill", function(d, i) {return colors.slice().reverse()[i];});
+ 
+legend.append("text")
+  .attr("x", width + 5)
+  .attr("y", 9)
+  .attr("dy", ".35em")
+  .style("text-anchor", "start")
+  .text(function(d, i) { 
+    switch (i) {
+      case 0: return "Anjou pears";
+      case 1: return "Naval oranges";
+      case 2: return "McIntosh apples";
+      case 3: return "Red Delicious apples";
+    }
+  });
+
+
+// Prep the tooltip bits, initial display is hidden
+var tooltip = svg.append("g")
+  .attr("class", "tooltip")
+  .style("display", "none");
+    
+tooltip.append("rect")
+  .attr("width", 30)
+  .attr("height", 20)
+  .attr("fill", "white")
+  .style("opacity", 0.5);
+
+tooltip.append("text")
+  .attr("x", 15)
+  .attr("dy", "1.2em")
+  .style("text-anchor", "middle")
+  .attr("font-size", "12px")
+  .attr("font-weight", "bold");
+
+}
+</script>
+
+<script>
+
+function print_filter(filter){
+  var f=eval(filter);
+  if (typeof(f.length) != "undefined") {}else{}
+  if (typeof(f.top) != "undefined") {f=f.top(Infinity);}else{}
+  if (typeof(f.dimension) != "undefined") {f=f.dimension(function(d) { return "";}).top(Infinity);}else{}
+  console.log(filter+"("+f.length+") = "+JSON.stringify(f).replace("[","[\n\t").replace(/}\,/g,"},\n\t").replace("]","\n]"));
+};
+
+function get_filter(filter){
+  var f=eval(filter);
+  if (typeof(f.length) != "undefined") {}else{}
+  if (typeof(f.top) != "undefined") {f=f.top(Infinity);}else{}
+  if (typeof(f.dimension) != "undefined") {f=f.dimension(function(d) { return "";}).top(Infinity);}else{}
+  return f
+};
+
+function getValue(arr, value) {
+  for(var i in arr) {
+    if(arr[i]['key'] === value) {
+      return arr[i]['value']
+    }
+  }
+}
+
+function getFinalData(FilterValues,LabourGroup,FreightGroup,PackagingGroup,RawAndPackGroup,TollFeeMarkupGroup,PFGMaterialGroup,OthersGroup) {
+  var finalData = []
+  console.log(FilterValues + "&&&&&&&&&&&&&&&&&&&&&&")
+  for(var i in FilterValues) {
+    var filter = FilterValues[i]
+    var labour = getValue(LabourGroup, filter)
+    var Freight = getValue(FreightGroup, filter)
+    var Packaging = getValue(PackagingGroup, filter)
+    var RawAndPack = getValue(RawAndPackGroup, filter)
+    var TollFeeMarkup = getValue(TollFeeMarkupGroup, filter)
+    var PFGMaterial = getValue(PFGMaterialGroup, filter)
+    var Others = getValue(OthersGroup, filter)
+    var object = {key:filter,labour:labour,Freight:Freight,Packaging:Packaging,RawAndPack:RawAndPack,TollFeeMarkup:TollFeeMarkup,PFGMaterial:PFGMaterial,Others:Others }
+    console.log(filter + "&&&&&&&&&&&&&&&&")
+    console.log(labour + "&&&&&&&&&&&&&&&&")
+    finalData.push(object)
+  }
+  console.log(finalData)
+  return finalData
+
+}
+
+var filterlist = []
+var finalFilter = ''
+var bomrecords;
+var flowrecords; 
+
+ function getFinalFilter() {    
+    var select = document.getElementById("mySelect");
+    var answer = select.options[select.selectedIndex].value;
+    finalFilter = answer
+    //alert(answer);
+    $("#mySVG").empty();
+    toCompare()
+    filterlist=[]
+    finalFilter=''
+ }
+
+queue()
+    .defer(d3.json, "/newdata2")
+    .defer(d3.json, "/flow")
+    .await(makeGraphs)
+
+function makeGraphs(error, mapjson, flowjson){
+
+  bomrecords = mapjson;
+  flowrecords = flowjson;
+
+  //create a crossfilter instance
+  var ndx = crossfilter(bomrecords);
+  var ndx2 = crossfilter(flowrecords);
+
+  //create four select menu for bomrecords
+  var select1 = dc.selectMenu('#select1');
+  var select2 = dc.selectMenu('#select2');
+  var select3 = dc.selectMenu('#select3');
+  var select4 = dc.selectMenu('#select4');
+  var select5 = dc.selectMenu('#select5');
+  var select6 = dc.selectMenu('#select6');
+
+
+  //define dimensions
+  var materialNoDim = ndx.dimension(function(d) { return d["Material_No"].toString(); });
+  var unitBomDim = ndx.dimension(function(d){ return d["BOMUnit"].toString();});
+  var variantDim = ndx.dimension(function(d){ return d["Vrnt_Description"].toString();});
+  var plantDim = ndx.dimension(function(d){ return d["Plant"].toString()});
+  var procTypeDim = ndx.dimension(function(d){ return d["ProcType"].toString();});
+
+  var variantTypeDim = ndx.dimension(function(d){ return d["Variant_type"].toString();});
+  var putupDim = ndx.dimension(function(d){ return d["Putup_Description"];});
+
+  var allDim = ndx.dimension(function(d) {return d;});
+
+  //define dimensions for flowrecords
+  var flow_materialNoDim =  ndx2.dimension(function(d) { return d["MaterialNO"]; });
+  var flow_plantDim = ndx2.dimension(function(d) { return d["Plant"]; });
+  var flow_allDim = ndx2.dimension(function(d) { return d;});
+
+  //filter by SPT = E or X
+  EXFilter = procTypeDim.filter(function(d){return d === "E" || d === "X";});   //return d === "E" || d === "X";
+
+  select1
+    .dimension(unitBomDim)
+    .group(unitBomDim.group())
+    .multiple(true)
+    .numberVisible(10)
+    .controlsUseVisibility(true);
+
+  select2
+    .dimension(variantDim)
+    .group(variantDim.group())
+    .multiple(true)
+    .numberVisible(10)
+    .controlsUseVisibility(true);
+
+  select3
+    .dimension(plantDim)
+    .group(plantDim.group())
+    .multiple(true)
+    .numberVisible(10)
+    .controlsUseVisibility(true);  
+
+  select4
+    .dimension(variantTypeDim)
+    .group(variantTypeDim.group())
+    .multiple(true)
+    .numberVisible(10)
+    .controlsUseVisibility(true);  
+
+  select5
+    .dimension(putupDim)
+    .group(putupDim.group())
+    .multiple(true)
+    .numberVisible(10)
+    .controlsUseVisibility(true);  
+
+  select6
+    .dimension(materialNoDim)
+    .group(materialNoDim.group())
+    .multiple(true)
+    .numberVisible(10)
+    .controlsUseVisibility(true);  
+
+  //render map to the html
+  var map = L.map('map')
+
+  var getCoordinates = function(code1, code2) {
+    var longitude = {'1000':121.757703, '210A':101.59, '240A':100.5, '724109':121.473, '1501':121.387819, '2210':103.819836, '260A':106.629, '110A':114.169, '211A':101.518,'120A':121.565, '341A':174.893677, '241A':100.75, '310A':139.692, '1516':108.93976, '1502':116.4073963, '260S':106.629, '110S':114.169, '1200':121.565, '313A':135.483,'748266':106.642764, '20349':114.108457, '743909':100.611247, '718009':120.971089}
+
+    var latitude = {'1000':31.151630, '210A':3.127, '240A':13.75, '724109':31.23, '1501':31.017379, '2210':1.352083, '260A':10.823, '110A':22.32,'211A':3.073,'120A':25.033, '341A':-36.9432115, '241A':13.723, '310A':35.689, '1516':34.341574, '1502':39.9041998, '260S':10.823, '110S':22.32, '1200':25.033, '313A':34.609,'748266':10.798767, '20349':22.331996, '743909':14.334037, '718009':24.908581}
+    Xlongtitude = longitude[code1]
+    Xlantitude = latitude[code1]
+
+    Ylongtitude = longitude[code2]
+    Ylantitude = latitude[code2]
+    var line = {'Xlongtitude':Xlongtitude, 'Xlantitude':Xlantitude, 'Ylongtitude':Ylongtitude, 'Ylantitude':Ylantitude }
+    return line
+  }
+
+  var filterFlow = function(materialNo, plant){
+      //return the end to end line for one material in one plant
+      var singlelineList = []
+      flow_materialNofilter = flow_materialNoDim.filter(function(d){return d === materialNo;});
+      //print_filter(flow_materialNofilter)
+
+      flow_plantfilter = flow_plantDim.filter(function(d){return d === plant;});
+      //print_filter(flow_plantfilter)
+
+      _.each(flow_allDim.top(Infinity), function (d) {
+        plant = d['Plant']
+        external_manufactor = d['External Manufactor']
+        dc = d['DC']
+        dc2 = d['DC2']
+        dc3 = d['DC3']
+        subcon = d['Subcon']
+        endDc = d['end dc']
+
+        console.log(plant + "&" + dc + "&" + dc2 + "*****************")
+
+        if(external_manufactor.length>1){
+          var exline = getCoordinates(plant, external_manufactor)
+          var exline2 = getCoordinates(external_manufactor, plant)
+
+          singlelineList.push(exline)
+          singlelineList.push(exline2)
+        }        
+
+        if(dc !== "0") {
+          console.log(dc+"&"+plant+"++++++++++++++++++++++++++++")
+          var line = getCoordinates(plant, dc)
+          //console.log(line['Xlongtitude']+"&"+line['Xlantitude']+"$$"+line['Ylongtitude']+line['Ylantitude'] + '^^^^^^^^^^^^^^^^^^^^^^^^^')
+          singlelineList.push(line)
+          if(dc2 !== "0"){
+            var line2 = getCoordinates(dc, dc2)
+            singlelineList.push(line2)
+            if(dc3 !== "0"){
+              var line3 = getCoordinates(dc2, dc3)
+              singlelineList.push(line3)
+            }
+
+          }
+        } 
+
+        if(subcon.length>1){
+          var endLine1 = getCoordinates(endDc, subcon)
+          var endLine2 = getCoordinates(subcon, endDc)
+
+          singlelineList.push(endLine1)
+          singlelineList.push(endLine2)
+        }
+
+      });      
+
+      return singlelineList;
+  }
+
+  var getArrowList = function(list) {
+    list2 = []
+    for (var i = 0; i < list.length; i++) {
+      list3 = []
+      for (var j = 0; j < list[i].length; j++) {
+        line = list[i][j]
+        if(!isNaN(line['Xlongtitude'])&&!isNaN(line['Ylongtitude'])) {
+          if(line['Xlongtitude'].toString().length>0&&line['Ylongtitude'].toString().length>0){
+            list4 = []
+            point1 = [parseFloat(line['Xlongtitude']),parseFloat(line['Xlantitude'])]
+            point2 = [parseFloat(line['Ylongtitude']),parseFloat(line['Ylantitude'])]
+            list4.push(point1)
+            list4.push(point2)
+            list3.push(list4)
+          }
+
+        }
+
+      }
+      list2.push(list3)
+    }
+
+    return list2;
+  }
+
+  var printBoms = function(){
+    //create a list
+    var multiplelinesList = []    //eg. [[line1, line2, line3], [line1, line2, line3, line4], [...]]
+
+      _.each(allDim.top(Infinity), function (d) {
+        console.log(d["Material_No"]);
+        console.log(d["Plant"]);
+        var singlelineList = filterFlow(d["Material_No"], d["Plant"]);
+        console.log(JSON.stringify(singlelineList))
+        if(singlelineList.length>0){
+           //console.log(JSON.stringify(singlelineList))
+           multiplelinesList.push(singlelineList)
+        }
+    });
+
+    //var mutipleArrowList = getArrowList(multiplelinesList)
+    
+    console.log(JSON.stringify(mutipleArrowList) + "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$")
+
+    //draw lines on the Map using Line objects in lineList
+    map.setView([10.89, 155.7], 2);
+    mapLink = '<a href="http://openstreetmap.org">OpenStreetMap</a>';
+    L.tileLayer(
+      'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; ' + mapLink + ' Contributors',
+        maxZoom: 15,
+      }).addTo(map);
+
+    for (var i = 0; i < multiplelinesList.length; i++) {
+      //console.log(JSON.stringify(multiplelinesList[i]))
+      for(var j = 0; j < multiplelinesList[i].length; j++) {
+        line = multiplelinesList[i][j]
+        console.log(JSON.stringify(line))
+        Xlongtitude = line['Xlongtitude']
+        Xlantitude = line['Xlantitude']
+        Ylongtitude = line['Ylongtitude']
+        Ylantitude= line['Ylantitude']
+        //console.log(line['Xlongtitude']+"&"+line['Xlantitude']+"$$"+line['Ylongtitude']+line['Ylantitude'] + '^^^^^^^^^^^^^^^^^^^^^^^^^')
+        //console.log(JSON.stringify(line))
+
+        if(!isNaN(Xlongtitude) && !isNaN(Ylongtitude)){
+          var point1 = new L.LatLng(parseFloat(Xlantitude), parseFloat(Xlongtitude));
+          var point2 = new L.LatLng(parseFloat(Ylantitude), parseFloat(Ylongtitude));
+          var pointList = [point1, point2];
+
+          var firstpolyline = new L.Polyline(pointList, {
+              color: 'red',
+              weight: 3,
+              opacity: 0.5,
+              smoothFactor: 1
+          });
+          firstpolyline.addTo(map); 
+
+        }
+      
+
+      }
+
+
+    }
+
+    var multiCoords1 = [
+        [[47.5468, -0.7910], [48.8068, -0.1318], [49.1242, 1.6699], [49.4966, 3.2958], [51.4266, 2.8564], [51.7542, 2.1093]], 
+    ];
+
+    var mutipleArrowList = [
+      [[121.757703,31.15163],[121.387819,31.017379],[108.93976,34.341574]],
+      [[121.387819,31.017379],[108.93976,34.341574]],
+      [[121.757703,31.15163],[121.387819,31.017379]]
+    ]
+
+    var plArray = [];
+    for(var i=0; i<multiCoords1.length; i++) {
+        plArray.push(L.polyline(multiCoords1[i]).addTo(map));
+    }
+
+    L.polylineDecorator(multiCoords1, {
+        patterns: [
+            {offset: 25, repeat: 50, symbol: L.Symbol.arrowHead({pixelSize: 15, pathOptions: {fillOpacity: 1, weight: 0}})}
+        ]
+    }).addTo(map);
+
+
+        // var point1 = new L.LatLng(23.34, 123);
+        // var point2 = new L.LatLng(45.23, 143);
+        // var pointList = [point1, point2];
+        // var firstpolyline = new L.Polyline(pointList, {
+        //     color: 'red',
+        //     weight: 3,
+        //     opacity: 0.5,
+        //     smoothFactor: 1
+        // });
+        // firstpolyline.addTo(map);
+
+
+  }
+
+
+  dcCharts = [select1,select2,select3,select4];
+
+  _.each(dcCharts, function (dcChart) {
+    dcChart.on("filtered", function (chart, filter) {
+      map.eachLayer(function (layer) {
+        map.removeLayer(layer)
+      }); 
+      // drawMap();
+      //console.log("redraw++++++++++++++++++")
+      printBoms();
+
+      filters = filter.toString().split(',');
+      for(var i in filters) {
+       // console.log(filters[i] + "&&&&&&&&&+++++++++++++")
+        filterlist.push(filters[i])
+      }
+      console.log(filterlist + "@@@@@@@@@@@@@@@@@@@@@@@@@@" + finalFilter)
+    });
+  });
+
+  dc.renderAll();
+  printBoms();
+
+
+}
+
+
+</script>
+
+
+<script>
+
+function toCompare() {
+  //create a crossfilter instance
+  var ndx3 = crossfilter(bomrecords);
+  var ndx4 = crossfilter(flowrecords);
+
+  //create Dim
+  var materialNoDim = ndx3.dimension(function(d) { return d["Material_No"].toString(); });
+  var unitBomDim = ndx3.dimension(function(d){ return d["BOMUnit"].toString();});
+  var variantDim = ndx3.dimension(function(d){ return d["Vrnt_Description"].toString();});
+  var plantDim = ndx3.dimension(function(d){ return d["Plant"].toString()});
+  var procTypeDim = ndx3.dimension(function(d){ return d["ProcType"].toString();});
+
+  var variantTypeDim = ndx3.dimension(function(d){ return d["Variant_type"].toString();});
+  var putupDim = ndx3.dimension(function(d){ return d["Putup_Description"];});
+
+  var allDim = ndx3.dimension(function(d) {return d;});
+
+  //alert(filterlist+ "*******************" + finalFilter);
+
+  //get all unique values for the filter
+  materialNoValues = []
+  unitBomValues = ['KG', 'Litre']
+  variantValues = [ 'pH55 2-in-1 Body Wsh','pH55 Body Wash','pH5.5 Oat Milk with Honey Body Wash','pH5.5 Oat Milk with Almond Oil Body W','Adult Body Wash Lasting Moisture','Adult Body Wash Naturally White','Adult Body Wash Melt Away Stress','Adult Body Wash Extra Care','Adult Body wash Oxygen Fresh','Adult Body Wash Spa Pomegranate','Adult Vibrance Radiance Body Wash','Adult Body Lotion Lasting Moisture' ,'Adult Body Lotion Oxygen Fresh','Adult Body Lotion Melt Away Stress','Adult Body Lotion Naturally White','Adult Body Lotion Extra Care','Adult Body Lotion Spa Pomegranate','Adult Vibrance Radiance Lotion Ap Oil','Adult Vibrance Radiance Serum','Adult Hand Cream  Extra Care','Pure Essentials Facial Compact Powder','Adult Body Powder Soft & Smooth','Adult Body Powder Naturally White','Adult Body Soap Vita-Rich']
+  plantValues = ['1000','110S','1200','210A','211A','230A','240A','241A','260A','310A']
+  variantTypeValues = ['Boday Wash','Boday Lotion','Powder','Soap','Serum','Hand Cream']
+  putupValues = ['1000 Millilitre','750 Millilitre','600 Millilitre','Bulk','375 Millilitre','100 Millilitre','400 Millilitre','Pack','200 Millilitre','70 Millilitre','266 Millilitre','700 Gram','400 Gram','200 Gram','50 Gram','10 Gram','80 Millilitre','125 Gram']
+
+  unitBomFilterValues = []
+  variantFilterValues = []
+  plantFilterValues = []
+  variantTypeFilterValues = []
+  putupFilterValues = []
+
+  materialsFilterValues = []
+
+  if(finalFilter === 'BOMUnit') {
+    //loop the filterlist
+    for(var i=0; i < filterlist.length; i++){
+      value = filterlist[i]
+      //add filter values to its value list
+      if(unitBomValues.indexOf(value) >= 0) {
+        unitBomFilterValues.push(value)
+      } else if(variantValues.indexOf(value) >= 0) {
+        variantFilterValues.push(value)
+      }  else if(plantValues.indexOf(value) >= 0) {
+        plantFilterValues.push(value)
+      }  else if(variantTypeValues.indexOf(value) >= 0) {
+        variantTypeFilterValues.push(value)
+      } else if(putupValues.indexOf(value) >= 0) {
+        putupFilterValues.push(value)
+      }  else if(materialNoValues.indexOf(value) >= 0) {
+        materialsFilterValues.push(value)
+      }
+
+    }
+
+    //use other filters to get the data
+    if(variantFilterValues.length > 0){
+      Filter = variantDim.filter(function(d){return variantFilterValues.indexOf(d) >= 0;});
+    }
+    
+    if(plantFilterValues.length > 0){
+      Filter2 = plantDim.filter(function(d){return plantFilterValues.indexOf(d) >= 0;});
+    }
+
+     if(variantTypeFilterValues.length > 0){
+      Filter3 = variantTypeDim.filter(function(d){return variantTypeFilterValues.indexOf(d) >= 0;});
+    }   
+    
+     if(putupFilterValues.length > 0){
+      Filter4 = putupDim.filter(function(d){return putupFilterValues.indexOf(d) >= 0;});
+    }     
+
+     if(materialsFilterValues.length > 0){
+      Filter5 = materialNoDim.filter(function(d){return materialsFilterValues.indexOf(d) >= 0;});
+    }     
+      
+   
+   // var totalLabour = ndx3.groupAll().reduceSum(function(bom) { return bom.Labour; }).value()
+   // console.log(totalLabour)  
+   //print_filter(bomLabourByBomUnit)
+   LabourByBomUnit = unitBomDim.group().reduceSum(function(d){return d.Labour;});
+   LabourGroup = get_filter(LabourByBomUnit);
+
+   FreightByBomUnit = unitBomDim.group().reduceSum(function(d){return d.Freight;});
+   FreightGroup = get_filter(FreightByBomUnit);
+
+   PackagingByBomUnit = unitBomDim.group().reduceSum(function(d){return d.Packaging;});
+   PackagingGroup = get_filter(PackagingByBomUnit);
+
+   RawAndPackByBomUnit = unitBomDim.group().reduceSum(function(d){return d.Raw_and_Pack;});
+   RawAndPackGroup = get_filter(RawAndPackByBomUnit);
+
+   TollFeeMarkupByBomUnit = unitBomDim.group().reduceSum(function(d){return d['Toll_Fee_Mk-Up'];});
+   TollFeeMarkupGroup = get_filter(TollFeeMarkupByBomUnit);
+
+   PFGMaterialByBomUnit = unitBomDim.group().reduceSum(function(d){return d['PFG__Material'];});
+   PFGMaterialGroup = get_filter(PFGMaterialByBomUnit);
+
+   OthersByBomUnit = unitBomDim.group().reduceSum(function(d){return d.Others;});
+   OthersGroup = get_filter(OthersByBomUnit);
+
+   finalData = getFinalData(unitBomFilterValues,LabourGroup,FreightGroup,PackagingGroup,RawAndPackGroup,TollFeeMarkupGroup,PFGMaterialGroup,OthersGroup)
+   makeStackedBarChart(finalData)
+
+  } 
+
+  if(finalFilter === 'Variant_type') {
+    //loop the filterlist
+    for(var i=0; i < filterlist.length; i++){
+      value = filterlist[i]
+      //add filter values to its value list
+      if(unitBomValues.indexOf(value) >= 0) {
+        unitBomFilterValues.push(value)
+      } else if(variantValues.indexOf(value) >= 0) {
+        variantFilterValues.push(value)
+      }  else if(plantValues.indexOf(value) >= 0) {
+        plantFilterValues.push(value)
+      }  else if(variantTypeValues.indexOf(value) >= 0) {
+        variantTypeFilterValues.push(value)
+      } else if(putupValues.indexOf(value) >= 0) {
+        putupFilterValues.push(value)
+      }  else if(materialNoValues.indexOf(value) >= 0) {
+        materialsFilterValues.push(value)
+      }
+
+    }
+
+    //use other filters to get the data
+    if(variantFilterValues.length > 0){
+      Filter = variantDim.filter(function(d){return variantFilterValues.indexOf(d) >= 0;});
+    }
+    
+    if(plantFilterValues.length > 0){
+      Filter2 = plantDim.filter(function(d){return plantFilterValues.indexOf(d) >= 0;});
+    }
+
+     if(unitBomFilterValues.length > 0){
+      Filter3 = unitBomDim.filter(function(d){return unitBomFilterValues.indexOf(d) >= 0;});
+    }   
+    
+     if(putupFilterValues.length > 0){
+      Filter4 = putupDim.filter(function(d){return putupFilterValues.indexOf(d) >= 0;});
+    }     
+
+     if(materialsFilterValues.length > 0){
+      Filter5 = materialNoDim.filter(function(d){return materialsFilterValues.indexOf(d) >= 0;});
+    }     
+      
+   
+   // var totalLabour = ndx3.groupAll().reduceSum(function(bom) { return bom.Labour; }).value()
+   // console.log(totalLabour)  
+   //print_filter(bomLabourByBomUnit)
+   LabourByBomUnit = variantTypeDim.group().reduceSum(function(d){return d.Labour;});
+   LabourGroup = get_filter(LabourByBomUnit);
+
+   FreightByBomUnit = variantTypeDim.group().reduceSum(function(d){return d.Freight;});
+   FreightGroup = get_filter(FreightByBomUnit);
+
+   PackagingByBomUnit = variantTypeDim.group().reduceSum(function(d){return d.Packaging;});
+   PackagingGroup = get_filter(PackagingByBomUnit);
+
+   RawAndPackByBomUnit = variantTypeDim.group().reduceSum(function(d){return d.Raw_and_Pack;});
+   RawAndPackGroup = get_filter(RawAndPackByBomUnit);
+
+   TollFeeMarkupByBomUnit = variantTypeDim.group().reduceSum(function(d){return d['Toll_Fee_Mk-Up'];});
+   TollFeeMarkupGroup = get_filter(TollFeeMarkupByBomUnit);
+
+   PFGMaterialByBomUnit = variantTypeDim.group().reduceSum(function(d){return d['PFG__Material'];});
+   PFGMaterialGroup = get_filter(PFGMaterialByBomUnit);
+
+   OthersByBomUnit = unitBomDim.group().reduceSum(function(d){return d.Others;});
+   OthersGroup = get_filter(OthersByBomUnit);
+
+   finalData = getFinalData(variantTypeFilterValues,LabourGroup,FreightGroup,PackagingGroup,RawAndPackGroup,TollFeeMarkupGroup,PFGMaterialGroup,OthersGroup)
+   makeStackedBarChart(finalData)
+  } 
+
+  if(finalFilter === 'Vrnt_Description') {
+    //loop the filterlist
+    for(var i=0; i < filterlist.length; i++){
+      value = filterlist[i]
+      //add filter values to its value list
+      if(unitBomValues.indexOf(value) >= 0) {
+        unitBomFilterValues.push(value)
+      } else if(variantValues.indexOf(value) >= 0) {
+        variantFilterValues.push(value)
+      }  else if(plantValues.indexOf(value) >= 0) {
+        plantFilterValues.push(value)
+      }  else if(variantTypeValues.indexOf(value) >= 0) {
+        variantTypeFilterValues.push(value)
+      } else if(putupValues.indexOf(value) >= 0) {
+        putupFilterValues.push(value)
+      }  else if(materialNoValues.indexOf(value) >= 0) {
+        materialsFilterValues.push(value)
+      }
+
+    }
+
+    //use other filters to get the data
+     if(unitBomFilterValues.length > 0){
+      Filter3 = unitBomDim.filter(function(d){return unitBomFilterValues.indexOf(d) >= 0;});
+    }  
+    
+    if(plantFilterValues.length > 0){
+      Filter2 = plantDim.filter(function(d){return plantFilterValues.indexOf(d) >= 0;});
+    }
+
+     if(variantTypeFilterValues.length > 0){
+      Filter3 = variantTypeDim.filter(function(d){return variantTypeFilterValues.indexOf(d) >= 0;});
+    }   
+    
+     if(putupFilterValues.length > 0){
+      Filter4 = putupDim.filter(function(d){return putupFilterValues.indexOf(d) >= 0;});
+    }     
+
+     if(materialsFilterValues.length > 0){
+      Filter5 = materialNoDim.filter(function(d){return materialsFilterValues.indexOf(d) >= 0;});
+    }     
+      
+   
+   // var totalLabour = ndx3.groupAll().reduceSum(function(bom) { return bom.Labour; }).value()
+   // console.log(totalLabour)  
+   //print_filter(bomLabourByBomUnit)
+   LabourByBomUnit = variantDim.group().reduceSum(function(d){return d.Labour;});
+   LabourGroup = get_filter(LabourByBomUnit);
+
+   FreightByBomUnit = variantDim.group().reduceSum(function(d){return d.Freight;});
+   FreightGroup = get_filter(FreightByBomUnit);
+
+   PackagingByBomUnit = variantDim.group().reduceSum(function(d){return d.Packaging;});
+   PackagingGroup = get_filter(PackagingByBomUnit);
+
+   RawAndPackByBomUnit = variantDim.group().reduceSum(function(d){return d.Raw_and_Pack;});
+   RawAndPackGroup = get_filter(RawAndPackByBomUnit);
+
+   TollFeeMarkupByBomUnit = variantDim.group().reduceSum(function(d){return d['Toll_Fee_Mk-Up'];});
+   TollFeeMarkupGroup = get_filter(TollFeeMarkupByBomUnit);
+
+   PFGMaterialByBomUnit = variantDim.group().reduceSum(function(d){return d['PFG__Material'];});
+   PFGMaterialGroup = get_filter(PFGMaterialByBomUnit);
+
+   OthersByBomUnit = variantDim.group().reduceSum(function(d){return d.Others;});
+   OthersGroup = get_filter(OthersByBomUnit);
+
+   finalData = getFinalData(variantTypeFilterValues,LabourGroup,FreightGroup,PackagingGroup,RawAndPackGroup,TollFeeMarkupGroup,PFGMaterialGroup,OthersGroup)
+   makeStackedBarChart(finalData)
+
+  } 
+
+  if(finalFilter === 'Putup_Description') {
+    //loop the filterlist
+    for(var i=0; i < filterlist.length; i++){
+      value = filterlist[i]
+      //add filter values to its value list
+      if(unitBomValues.indexOf(value) >= 0) {
+        unitBomFilterValues.push(value)
+      } else if(variantValues.indexOf(value) >= 0) {
+        variantFilterValues.push(value)
+      }  else if(plantValues.indexOf(value) >= 0) {
+        plantFilterValues.push(value)
+      }  else if(variantTypeValues.indexOf(value) >= 0) {
+        variantTypeFilterValues.push(value)
+      } else if(putupValues.indexOf(value) >= 0) {
+        putupFilterValues.push(value)
+      }  else if(materialNoValues.indexOf(value) >= 0) {
+        materialsFilterValues.push(value)
+      }
+
+    }
+
+    //use other filters to get the data
+    if(variantFilterValues.length > 0){
+      Filter = variantDim.filter(function(d){return variantFilterValues.indexOf(d) >= 0;});
+    }
+    
+    if(plantFilterValues.length > 0){
+      Filter2 = plantDim.filter(function(d){return plantFilterValues.indexOf(d) >= 0;});
+    }
+
+     if(variantTypeFilterValues.length > 0){
+      Filter3 = variantTypeDim.filter(function(d){return variantTypeFilterValues.indexOf(d) >= 0;});
+    }   
+    
+     if(unitBomFilterValues.length > 0){
+      Filter3 = unitBomDim.filter(function(d){return unitBomFilterValues.indexOf(d) >= 0;});
+    }    
+
+     if(materialsFilterValues.length > 0){
+      Filter5 = materialNoDim.filter(function(d){return materialsFilterValues.indexOf(d) >= 0;});
+    }     
+      
+   
+   // var totalLabour = ndx3.groupAll().reduceSum(function(bom) { return bom.Labour; }).value()
+   // console.log(totalLabour)  
+   //print_filter(bomLabourByBomUnit)
+   LabourByBomUnit = putupDim.group().reduceSum(function(d){return d.Labour;});
+   LabourGroup = get_filter(LabourByBomUnit);
+
+   FreightByBomUnit = putupDim.group().reduceSum(function(d){return d.Freight;});
+   FreightGroup = get_filter(FreightByBomUnit);
+
+   PackagingByBomUnit = putupDim.group().reduceSum(function(d){return d.Packaging;});
+   PackagingGroup = get_filter(PackagingByBomUnit);
+
+   RawAndPackByBomUnit = putupDim.group().reduceSum(function(d){return d.Raw_and_Pack;});
+   RawAndPackGroup = get_filter(RawAndPackByBomUnit);
+
+   TollFeeMarkupByBomUnit = putupDim.group().reduceSum(function(d){return d['Toll_Fee_Mk-Up'];});
+   TollFeeMarkupGroup = get_filter(TollFeeMarkupByBomUnit);
+
+   PFGMaterialByBomUnit = putupDim.group().reduceSum(function(d){return d['PFG__Material'];});
+   PFGMaterialGroup = get_filter(PFGMaterialByBomUnit);
+
+   OthersByBomUnit = putupDim.group().reduceSum(function(d){return d.Others;});
+   OthersGroup = get_filter(OthersByBomUnit);
+
+   finalData = getFinalData(putupFilterValues,LabourGroup,FreightGroup,PackagingGroup,RawAndPackGroup,TollFeeMarkupGroup,PFGMaterialGroup,OthersGroup)
+   makeStackedBarChart(finalData)
+
+
+  } 
+
+
+
+
+  if(finalFilter === 'Plant') {
+    //loop the filterlist
+    for(var i=0; i < filterlist.length; i++){
+      value = filterlist[i]
+      //add filter values to its value list
+      if(unitBomValues.indexOf(value) >= 0) {
+        unitBomFilterValues.push(value)
+      } else if(variantValues.indexOf(value) >= 0) {
+        variantFilterValues.push(value)
+      }  else if(plantValues.indexOf(value) >= 0) {
+        plantFilterValues.push(value)
+      }  else if(variantTypeValues.indexOf(value) >= 0) {
+        variantTypeFilterValues.push(value)
+      } else if(putupValues.indexOf(value) >= 0) {
+        putupFilterValues.push(value)
+      }  else if(materialNoValues.indexOf(value) >= 0) {
+        materialsFilterValues.push(value)
+      }
+
+    }
+
+    //use other filters to get the data
+    if(variantFilterValues.length > 0){
+      Filter = variantDim.filter(function(d){return variantFilterValues.indexOf(d) >= 0;});
+    }
+    
+     if(unitBomFilterValues.length > 0){
+      Filter3 = unitBomDim.filter(function(d){return unitBomFilterValues.indexOf(d) >= 0;});
+    }  
+
+     if(variantTypeFilterValues.length > 0){
+      Filter3 = variantTypeDim.filter(function(d){return variantTypeFilterValues.indexOf(d) >= 0;});
+    }   
+    
+     if(putupFilterValues.length > 0){
+      Filter4 = putupDim.filter(function(d){return putupFilterValues.indexOf(d) >= 0;});
+    }     
+
+     if(materialsFilterValues.length > 0){
+      Filter5 = materialNoDim.filter(function(d){return materialsFilterValues.indexOf(d) >= 0;});
+    }     
+      
+   
+   // var totalLabour = ndx3.groupAll().reduceSum(function(bom) { return bom.Labour; }).value()
+   // console.log(totalLabour)  
+   //print_filter(bomLabourByBomUnit)
+   LabourByBomUnit = plantDim.group().reduceSum(function(d){return d.Labour;});
+   LabourGroup = get_filter(LabourByBomUnit);
+
+   FreightByBomUnit = plantDim.group().reduceSum(function(d){return d.Freight;});
+   FreightGroup = get_filter(FreightByBomUnit);
+
+   PackagingByBomUnit = plantDim.group().reduceSum(function(d){return d.Packaging;});
+   PackagingGroup = get_filter(PackagingByBomUnit);
+
+   RawAndPackByBomUnit = plantDim.group().reduceSum(function(d){return d.Raw_and_Pack;});
+   RawAndPackGroup = get_filter(RawAndPackByBomUnit);
+
+   TollFeeMarkupByBomUnit = plantDim.group().reduceSum(function(d){return d['Toll_Fee_Mk-Up'];});
+   TollFeeMarkupGroup = get_filter(TollFeeMarkupByBomUnit);
+
+   PFGMaterialByBomUnit = plantDim.group().reduceSum(function(d){return d['PFG__Material'];});
+   PFGMaterialGroup = get_filter(PFGMaterialByBomUnit);
+
+   OthersByBomUnit = plantDim.group().reduceSum(function(d){return d.Others;});
+   OthersGroup = get_filter(OthersByBomUnit);
+
+   finalData = getFinalData(plantFilterValues,LabourGroup,FreightGroup,PackagingGroup,RawAndPackGroup,TollFeeMarkupGroup,PFGMaterialGroup,OthersGroup)
+   makeStackedBarChart(finalData)
+
+
+  } 
+
+  if(finalFilter === 'Material_No') {
+    for(var i=0; i < filterlist.length; i++){
+      value = filterlist[i]
+
+      //add filter values to its value list
+      if(unitBomValues.indexOf(value) >= 0) {
+        unitBomFilterValues.push(value)
+      } else if(variantValues.indexOf(value) >= 0) {
+        variantFilterValues.push(value)
+      }  else if(plantValues.indexOf(value) >= 0) {
+        plantFilterValues.push(value)
+      }  else if(variantTypeValues.indexOf(value) >= 0) {
+        variantTypeFilterValues.push(value)
+      } else if(putupValues.indexOf(value) >= 0) {
+        putupFilterValues.push(value)
+      }  else if(materialNoValues.indexOf(value) >= 0) {
+        materialsFilterValues.push(value)
+      }
+
+
+    }
+
+  } 
+
+// var data = [
+//   { year: "2006", redDelicious: "10", mcintosh: "15", oranges: "9", pears: "6", bitch:"8", bask:"2" },
+//   { year: "2007", redDelicious: "12", mcintosh: "18", oranges: "9", pears: "4", bitch:"8", bask:"2"  },
+//   { year: "2008", redDelicious: "05", mcintosh: "20", oranges: "8", pears: "2", bitch:"8", bask:"2"  },
+// ];
+  
+}
+
+
+</script>
